@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         lol tronclass
 // @namespace    no
-// @version      0.1
+// @version      0.2
 // @description  lol teacher
 // @author       lol
 // @match        https://eclass.yuntech.edu.tw/course/*
+// @match        https://eclass.yuntech.edu.tw/exam/*
 // @icon         https://media.discordapp.net/attachments/922733774633050112/969011518861623376/256.png
 // @grant        none
 // @license MIT
@@ -21,3 +22,8 @@ for (let full_event_name of ["fullscreenElement","fullscreenEnabled","mozFullScr
         event.stopImmediatePropagation();
     }, true);
 }
+
+window.addEventListener('load', function() {
+    document.getElementById("Symbol(water-mark)").style.background = ""
+}, false);
+
