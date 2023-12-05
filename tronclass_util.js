@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         tronclass util
 // @namespace    no
-// @version      0.2
+// @version      0.2.1
 // @description  more useful tools for tronclass
 // @author       lol
 // @match        https://eclass.yuntech.edu.tw/course/*
@@ -12,8 +12,6 @@
 // @license MIT
 // ==/UserScript==
 
-// include /https?:\/\/eclass.yuntech.edu.tw\/course\/[0-9]{1,6}\/content#\//
-// add a card under class="tcollapse ng-scope
 
 (function () {
   "use strict";
@@ -70,8 +68,6 @@
   }
 
   function watchthevideo(start, end, videodata) {
-    // let start = 0;
-    // let end = 120;
     let student = globalData.user;
     let course = globalData.course;
     let dep = globalData.dept;
@@ -93,9 +89,6 @@
       }
     )
       .then((response) => response.json())
-      .then((data) => {
-        console.log(data);
-      });
     fetch("https://eclass.yuntech.edu.tw/statistics/api/online-videos", {
       method: "POST",
       headers: {
@@ -141,9 +134,8 @@
     }).then((response) => {
       if (response.ok) {
         console.log("success");
-        console.log(response.status);
       } else {
-        console.log(response);
+        console.log(response.status);
       }
     });
   }
@@ -263,10 +255,9 @@
 
   function action(observer) {
     observer.disconnect();
-    console.log("load done");
     if (document.URL.match(/https?:\/\/eclass.yuntech.edu.tw\/course\/[0-9]{1,6}\/content#\//)) {
       makecoursepanel();
-    }else if(document.URL.match(/https?:\/\/eclass.yuntech.edu.tw\/course\/[0-9]{1,6}\/learning-activity\/full-screen/)){
+    }else if(document.URL.match(/https?:\/\/eclass.yuntech.edu.tw\/course\/[0-9]{1,6}\/learning-activity\/full-screen/) && document.querySelector("video")){
       makevideopanel();
     }
   }
