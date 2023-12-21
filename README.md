@@ -17,7 +17,7 @@ install: https://greasyfork.org/zh-TW/scripts/481617-tronclass-util
 
 ### intro
 
-~~自動以 16 背速觀看影片 已遭棄用~~
+~~自動以 16 倍速觀看影片 已遭棄用~~
 
 ## loltronclass
 
