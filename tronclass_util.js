@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         tronclass util
 // @namespace    no
-// @version      0.2.1
+// @version      0.2.2
 // @description  more useful tools for tronclass
 // @author       lol
 // @match        https://eclass.yuntech.edu.tw/course/*
@@ -22,6 +22,27 @@
     ispress: false,
   };
 
+  function tempAlert(msg,duration)
+  {
+    var el = document.createElement("div");
+    el.innerHTML =
+    `<div class="lol_alert alert-box success radius" data-alert>
+      ${msg}
+    </div>
+    <style>
+      .lol_alert {
+        position: absolute;
+        top: 40%;
+        left: 20%;
+        z-index: 99;
+      }
+    </style>`;
+    setTimeout(function(){
+      el.parentNode.removeChild(el);
+    },duration);
+    document.body.appendChild(el);
+  }
+
   function updateprocessbar() {
     try{
     let processbar = document.getElementById("watch-process");
@@ -29,6 +50,14 @@
     processbar.style = `width: ${persent}%`;
     }catch(e){}
   }
+
+  function finishprocessbar() {
+    try{
+    let processbar = document.getElementById("watch-process-div");
+    processbar.parentNode.removeChild(processbar);
+    }catch(e){}
+  }
+
 
   function circle_watch(fast = 1000) {
     const video = document.querySelector("video");
@@ -59,6 +88,9 @@
               watchthevideo(i, max, data);
               tglobal.process = max;
               updateprocessbar();
+              finishprocessbar();
+              tglobal.ispress = false;
+              tempAlert("aleardy watch the video", 2000);
             }
           }, fast*ct);
           lasttime = i + maxrun;
@@ -144,7 +176,7 @@
     let panel = document.createElement("div");
     panel.style = "padding: 20px;margin-top: -40px;";
     panel.innerHTML = `
-    <div class="panel">
+    <div class="panel" id="eclassutilpanel">
       <div class="panel-heading">
         <h4>tronclass util</h4>
       </div>
@@ -171,8 +203,8 @@
       if(!tglobal.ispress){
         let processbar = document.createElement("div");
         processbar.innerHTML = `
-        <div class="panel-progress">
-            <div class="progress-meter" , id="watch-process" style="width: ${tglobal.persent}%"></div>
+        <div class="panel-progress" id="watch-process-div">
+            <div class="progress-meter" id="watch-process" style="width: ${tglobal.persent}%"></div>
         </div>
         <style>
           .panel-progress {
@@ -243,11 +275,13 @@
     });
   }
 
+
+
+
   var observer = new MutationObserver(resetTimer);
-  var timer = setTimeout(action, 1000, observer); // wait for the page to stay still for 3 seconds
+  var timer = setTimeout(action, 1000, observer);
   observer.observe(document, { childList: true, subtree: true });
 
-  // reset timer every time something changes
   function resetTimer(changes, observer) {
     clearTimeout(timer);
     timer = setTimeout(action, 1000, observer);
@@ -257,9 +291,10 @@
     observer.disconnect();
     if (document.URL.match(/https?:\/\/eclass.yuntech.edu.tw\/course\/[0-9]{1,6}\/content#\//)) {
       makecoursepanel();
-    }else if(document.URL.match(/https?:\/\/eclass.yuntech.edu.tw\/course\/[0-9]{1,6}\/learning-activity\/full-screen/) && document.querySelector("video")){
+    }else if(document.URL.match(/https?:\/\/eclass.yuntech.edu.tw\/course\/[0-9]{1,6}\/learning-activity\/full-screen/) && document.getElementsByClassName("online-video")){
       makevideopanel();
     }
   }
+
   console.log("%c eclass Util %c https://github.com/phillychi3/loltronclass ", "color: white; background: #e9546b; padding:5px 0;", "padding:4px;border:1px solid #e9546b;");
 })();
