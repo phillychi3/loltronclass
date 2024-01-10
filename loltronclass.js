@@ -6,6 +6,7 @@
 // @author       lol
 // @match        https://eclass.yuntech.edu.tw/course/*
 // @match        https://eclass.yuntech.edu.tw/exam/*
+// @match        https://elearning.yuntech.edu.tw/learn/exam/*
 // @icon         https://media.discordapp.net/attachments/922733774633050112/969011518861623376/256.png
 // @grant        none
 // @license MIT
