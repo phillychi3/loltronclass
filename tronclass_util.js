@@ -1,17 +1,16 @@
 // ==UserScript==
 // @name         tronclass util
 // @namespace    no
-// @version      0.2.2
+// @version      0.3.0
 // @description  more useful tools for tronclass
 // @author       lol
 // @match        https://eclass.yuntech.edu.tw/course/*
-// @icon         https://media.discordapp.net/attachments/922733774633050112/969011518861623376/256.png
+// @icon         https://cdn.discordapp.com/avatars/755351137577599016/5ccfb5d525fb3d304c7d61c8d51c6777.png?size=1024
 // @grant        none
 // @updateURL    https://raw.githubusercontent.com/phillychi3/loltronclass/main/tronclass_util.js
 // @downloadURL  https://raw.githubusercontent.com/phillychi3/loltronclass/main/tronclass_util.js
 // @license MIT
 // ==/UserScript==
-
 
 (function () {
   "use strict";
@@ -19,14 +18,14 @@
     process: 0,
     processmax: 0,
     persent: 0,
-    ispress: false,
+    videoispress: false,
+    courseispress: false,
+    closeonfinish: false,
   };
 
-  function tempAlert(msg,duration)
-  {
+  function tempAlert(msg, duration) {
     var el = document.createElement("div");
-    el.innerHTML =
-    `<div class="lol_alert alert-box success radius" data-alert>
+    el.innerHTML = `<div class="lol_alert alert-box success radius" data-alert>
       ${msg}
     </div>
     <style>
@@ -37,34 +36,40 @@
         z-index: 99;
       }
     </style>`;
-    setTimeout(function(){
+    setTimeout(function () {
       el.parentNode.removeChild(el);
-    },duration);
+    }, duration);
     document.body.appendChild(el);
   }
 
   function updateprocessbar() {
-    try{
-    let processbar = document.getElementById("watch-process");
-    let persent = (tglobal.process / tglobal.processmax) * 100;
-    processbar.style = `width: ${persent}%`;
-    }catch(e){}
+    try {
+      let processbar = document.getElementById("watch-process");
+      let persent = (tglobal.process / tglobal.processmax) * 100;
+      processbar.style = `width: ${persent}%`;
+    } catch (e) {}
   }
 
   function finishprocessbar() {
-    try{
-    let processbar = document.getElementById("watch-process-div");
-    processbar.parentNode.removeChild(processbar);
-    }catch(e){}
+    try {
+      let processbar = document.getElementById("watch-process-div");
+      processbar.parentNode.removeChild(processbar);
+    } catch (e) {}
   }
-
 
   function circle_watch(fast = 1000) {
     const video = document.querySelector("video");
+    if(!video){
+      setTimeout(() => {
+        circle_watch(fast);
+      }, 1000);
+      console.error("video not found");
+      return;
+    }
     const max = video.duration;
     const maxrun = 60;
     let lasttime = 0;
-    const thisvideoid = document.URL.split("/").splice(-1).toString()
+    const thisvideoid = document.URL.split("/").splice(-1).toString();
     tglobal.processmax = max;
     fetch(`https://eclass.yuntech.edu.tw/api/activities/${thisvideoid}`, {
       method: "GET",
@@ -75,28 +80,29 @@
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log(data)
-        let ct = 0
+        let ct = 0;
         for (let i = 0; i < max; i = i + maxrun) {
-          ct++
+          ct++;
           setTimeout(() => {
             watchthevideo(i, i + maxrun, data);
             tglobal.process = i + maxrun;
             updateprocessbar();
-            if(max-i<maxrun){
-              console.log("last")
+            if (max - i < maxrun) {
+              console.log("last");
               watchthevideo(i, max, data);
               tglobal.process = max;
               updateprocessbar();
               finishprocessbar();
-              tglobal.ispress = false;
+              tglobal.videoispress = false;
               tempAlert("aleardy watch the video", 2000);
+              if (tglobal.closeonfinish) {
+                window.close();
+              }
             }
-          }, fast*ct);
+          }, fast * ct);
           lasttime = i + maxrun;
         }
-      }
-    );
+      });
   }
 
   function watchthevideo(start, end, videodata) {
@@ -109,8 +115,7 @@
         method: "POST",
         headers: {
           Origin: "https://eclass.yuntech.edu.tw",
-          Referer:
-            `https://eclass.yuntech.edu.tw/course/${course.id}/learning-activity/full-screen`,
+          Referer: `https://eclass.yuntech.edu.tw/course/${course.id}/learning-activity/full-screen`,
           "Content-Type": "application/json;charset=UTF-8",
         },
         body: JSON.stringify({
@@ -119,15 +124,13 @@
         }),
         cookie: document.cookie,
       }
-    )
-      .then((response) => response.json())
+    ).then((response) => response.json());
     fetch("https://eclass.yuntech.edu.tw/statistics/api/online-videos", {
       method: "POST",
       headers: {
         Connection: "keep-alive",
         Origin: "https://eclass.yuntech.edu.tw",
-        Referer:
-          `https://eclass.yuntech.edu.tw/course/${course.id}/learning-activity/full-screen`,
+        Referer: `https://eclass.yuntech.edu.tw/course/${course.id}/learning-activity/full-screen`,
         "Content-Type": "Typetext/plain;charset=UTF-8",
       },
       cookie: document.cookie,
@@ -197,10 +200,10 @@
       }
     </style>
     `;
-    document.querySelector('div.fullscreen-right').appendChild(panel);
+    document.querySelector("div.fullscreen-right").appendChild(panel);
     let btn1 = document.getElementById("btn1");
     btn1.addEventListener("click", function () {
-      if(!tglobal.ispress){
+      if (!tglobal.videoispress) {
         let processbar = document.createElement("div");
         processbar.innerHTML = `
         <div class="panel-progress" id="watch-process-div">
@@ -224,7 +227,7 @@
           }
         `;
         document.querySelector("div.panel-body").appendChild(processbar);
-        tglobal.ispress = true;
+        tglobal.videoispress = true;
         circle_watch();
       }
     });
@@ -232,9 +235,17 @@
     btn2.addEventListener("click", function () {
       circle_watch(10);
     });
+    let hash = window.location.hash.substring(1);
+    let autowatch = false;
+    if (hash.includes("?")) {
+      let hashParams = new URLSearchParams(hash.split("?")[1]);
+      autowatch = hashParams.get("autowatch");
+    }
+    if (autowatch === "true") {
+      tglobal.closeonfinish = true;
+      circle_watch();
+    }
   }
-
-
 
   function makecoursepanel() {
     let panel = document.createElement("div");
@@ -246,7 +257,7 @@
             </h4>
         </div>
         <div class="buttons" id="buttons">
-            <button class="btn btn-default" id="btn1">watch all video</button>
+            <button class="btn btn-default" id="btn1">watch all video(not finish</button>
             <button class="btn btn-default" id="btn2">wait...</button>
         </div>
     </div>
@@ -275,8 +286,83 @@
     });
   }
 
+  function makeweekvideopanel() {
+    let syllabus = document.getElementsByClassName("syllabus-list");
+    Array.from(syllabus).forEach((element) => {
+      let titleElement = element.querySelector(".title.ng-binding");
+      if (titleElement && titleElement.innerText == "影音教材") {
+        let activities =
+          element.parentElement.getElementsByClassName("learning-activity");
 
+        let activityIds = Array.from(activities)
+          .map((activity) => {
+            let match = activity.id.match(/learning-activity-(\d+)/);
+            return match ? match[1] : null;
+          })
+          .filter((id) => id !== null);
 
+        let button = document.createElement("button");
+        button.className = "button-green";
+        button.innerText = "觀看這周";
+        button.style.marginRight = "10px";
+
+        button.addEventListener("click", (event) => {
+          event.stopPropagation();
+          if (tglobal.courseispress) {
+            return;
+          }
+          tglobal.courseispress = true;
+          let container = document.createElement("div");
+          container.style.display = "flex";
+          container.style.alignItems = "center";
+          container.style.gap = "10px";
+          button.parentNode.insertBefore(container, button);
+          container.appendChild(button);
+          let processbar = document.createElement("div");
+          processbar.className = "loader";
+          processbar.style.display = "none";
+          processbar.innerHTML = `
+          <style>
+            .loader {
+              width: 30px;
+              height: 30px;
+              border: 5px solid #0000;
+              box-sizing: border-box;
+              background:
+                radial-gradient(farthest-side,#000 98%,#0000) 0    0/5px 5px,
+                radial-gradient(farthest-side,#000 98%,#0000) 100% 0/5px 5px,
+                radial-gradient(farthest-side,#000 98%,#0000) 100% 100%/5px 5px,
+                radial-gradient(farthest-side,#000 98%,#0000) 0 100%/5px 5px,
+                linear-gradient(#000 0 0) 50%/10px 10px,
+                #fff;
+              background-repeat: no-repeat;
+              filter: blur(2px) contrast(10);
+              animation: l12 0.8s infinite;
+            }
+            @keyframes l12 {
+              100%  {background-position:100% 0,100% 100%,0 100%,0 0,center}
+            }
+          `;
+          container.appendChild(processbar);
+          processbar.style.display = "block";
+          activityIds.forEach((id, index) => {
+            setTimeout(() => {
+              window.open(
+                `https://eclass.yuntech.edu.tw/course/${globalData.course.id}/learning-activity/full-screen#/${id}?autowatch=true`
+              );
+              console.log(id);
+            }, index * 6000);
+          });
+          setTimeout(() => {
+            tglobal.courseispress = false;
+            processbar.style.display = "none";
+          }, activityIds.length * 6000);
+        });
+
+        titleElement.parentNode.appendChild(button);
+      }
+    });
+  }
 
   var observer = new MutationObserver(resetTimer);
   var timer = setTimeout(action, 1000, observer);
@@ -289,12 +375,26 @@
 
   function action(observer) {
     observer.disconnect();
-    if (document.URL.match(/https?:\/\/eclass.yuntech.edu.tw\/course\/[0-9]{1,6}\/content#\//)) {
+    if (
+      document.URL.match(
+        /https?:\/\/eclass.yuntech.edu.tw\/course\/[0-9]{1,6}\/content#\//
+      )
+    ) {
       makecoursepanel();
-    }else if(document.URL.match(/https?:\/\/eclass.yuntech.edu.tw\/course\/[0-9]{1,6}\/learning-activity\/full-screen/) && document.getElementsByClassName("online-video")){
+      makeweekvideopanel();
+    } else if (
+      document.URL.match(
+        /https?:\/\/eclass.yuntech.edu.tw\/course\/[0-9]{1,6}\/learning-activity\/full-screen/
+      ) &&
+      document.getElementsByClassName("online-video")
+    ) {
       makevideopanel();
     }
   }
 
-  console.log("%c eclass Util %c https://github.com/phillychi3/loltronclass ", "color: white; background: #e9546b; padding:5px 0;", "padding:4px;border:1px solid #e9546b;");
+  console.log(
+    "%c eclass Util %c https://github.com/phillychi3/loltronclass ",
+    "color: white; background: #e9546b; padding:5px 0;",
+    "padding:4px;border:1px solid #e9546b;"
+  );
 })();
