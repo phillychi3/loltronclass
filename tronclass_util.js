@@ -57,16 +57,64 @@
     } catch (e) {}
   }
 
-  function circle_watch(fast = 1000) {
+  function extractVideoId(url) {
+    try {
+      const parsedUrl = new URL(url);
+      const videoId =
+        parsedUrl.searchParams.get("v") || parsedUrl.pathname.split("/").pop();
+      return videoId;
+    } catch (error) {
+      console.error("獲取影片ID出錯:", error);
+      return null;
+    }
+  }
+
+  async function get_youtube_length() {
+    const iframe = document.querySelector('iframe[src*="youtube.com"]');
+    if (!iframe) {
+      reject("No YouTube iframe");
+      return;
+    }
+    const videoId = extractVideoId(iframe.src);
+    if (!videoId) {
+      reject("無法獲取影片ID");
+      return;
+    }
+    console.log("找到影片ID:", videoId);
+    const apifetch = await fetch(
+      "https://youtube_videotime_worker.phillychi3.workers.dev/api/video?url=" +
+        videoId,
+        {
+          "mode": "no-cors",
+        }
+    );
+    if (!apifetch.ok) {
+      console.error("API錯誤:", apifetch.status);
+      reject("API錯誤");
+    } else {
+      const apidata = await apifetch.json();
+      return apidata.length;
+    }
+  }
+
+  async function circle_watch(fast = 1000) {
     const video = document.querySelector("video");
-    if(!video){
+    //*[@id="player"]
+    let max = 10000
+    if (document.getElementById("player")) {
+      max = await get_youtube_length();
+    }
+    else{
+      max = video.duration
+    }
+    if (!video) {
       setTimeout(() => {
         circle_watch(fast);
       }, 1000);
       console.error("video not found");
       return;
     }
-    const max = video.duration;
+
     const maxrun = 60;
     let lasttime = 0;
     const thisvideoid = document.URL.split("/").splice(-1).toString();
