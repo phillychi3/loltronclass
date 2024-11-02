@@ -84,9 +84,9 @@
     const apifetch = await fetch(
       "https://youtube_videotime_worker.phillychi3.workers.dev/api/video?url=" +
         videoId,
-        {
-          "mode": "no-cors",
-        }
+      {
+        mode: "no-cors",
+      }
     );
     if (!apifetch.ok) {
       console.error("API錯誤:", apifetch.status);
@@ -100,12 +100,11 @@
   async function circle_watch(fast = 1000) {
     const video = document.querySelector("video");
     //*[@id="player"]
-    let max = 10000
+    let max = 10000;
     if (document.getElementById("player")) {
       max = await get_youtube_length();
-    }
-    else{
-      max = video.duration
+    } else {
+      max = video.duration;
     }
     if (!video) {
       setTimeout(() => {

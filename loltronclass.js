@@ -13,18 +13,36 @@
 // ==/UserScript==
 
 for (let event_name of ["visibilitychange", "webkitvisibilitychange", "blur"]) {
-  window.addEventListener(event_name, function(event) {
-        event.stopImmediatePropagation();
-    }, true);
+  window.addEventListener(
+    event_name,
+    function (event) {
+      event.stopImmediatePropagation();
+    },
+    true
+  );
 }
 
-for (let full_event_name of ["fullscreenElement","fullscreenEnabled","mozFullScreenEnabled", "webkitFullscreenEnabled", "msFullscreenEnabled","webkitIsFullScreen"]) {
-  window.addEventListener(full_event_name, function(event) {
-        event.stopImmediatePropagation();
-    }, true);
+for (let full_event_name of [
+  "fullscreenElement",
+  "fullscreenEnabled",
+  "mozFullScreenEnabled",
+  "webkitFullscreenEnabled",
+  "msFullscreenEnabled",
+  "webkitIsFullScreen",
+]) {
+  window.addEventListener(
+    full_event_name,
+    function (event) {
+      event.stopImmediatePropagation();
+    },
+    true
+  );
 }
 
-window.addEventListener('load', function() {
-    document.getElementById("Symbol(water-mark)").style.background = ""
-}, false);
-
+window.addEventListener(
+  "load",
+  function () {
+    document.getElementById("Symbol(water-mark)").style.background = "";
+  },
+  false
+);

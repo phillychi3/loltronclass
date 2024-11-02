@@ -11,7 +11,7 @@
 // @license MIT
 // ==/UserScript==
 
-const rows = Array.from(document.querySelectorAll('tr'));
+const rows = Array.from(document.querySelectorAll("tr"));
 rows.forEach((row) => {
   const firstRadioInput = row.querySelector('input[type="radio"]');
   if (firstRadioInput) {

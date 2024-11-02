@@ -10,19 +10,18 @@
 // @grant        none
 // ==/UserScript==
 
-(function() {
-    'use strict';
-    let video;
-    let speed = 16;
-    document.addEventListener("play", setplayspeed, true);
-    document.addEventListener("playing",whenplaysetspeed,true);
-    function setplayspeed(event) {
-        video = event.target;
-    }
-    function whenplaysetspeed(enent) {
-        event.target.playbackRate = speed;
-        event.target.muted = true;
-        event.target.__proto__.pause = () => {};
-    }
-
+(function () {
+  "use strict";
+  let video;
+  let speed = 16;
+  document.addEventListener("play", setplayspeed, true);
+  document.addEventListener("playing", whenplaysetspeed, true);
+  function setplayspeed(event) {
+    video = event.target;
+  }
+  function whenplaysetspeed(enent) {
+    event.target.playbackRate = speed;
+    event.target.muted = true;
+    event.target.__proto__.pause = () => {};
+  }
 })();
