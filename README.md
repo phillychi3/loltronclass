@@ -1,5 +1,7 @@
 # TronClass 工具集合
 
+## tronclass util
+
 ### 安裝
 
 請至：https://greasyfork.org/zh-TW/scripts/481617-tronclass-util
@@ -11,8 +13,13 @@
 -   快速觀看 TronClass 影片
 -   更多功能開發中...
 
+## autowriteq
 
-## LolTronClass 功能
+### 自動填寫期末問卷(每次選課都要勾選的教師滿意度)
+
+-   自動填寫
+
+## LolTronClass
 
 ### 更好考試檢測
 
