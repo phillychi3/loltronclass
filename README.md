@@ -1,27 +1,29 @@
-# loltronclass
+# TronClass 工具集合
 
-## tronclass util
+### 安裝
 
-### Usage
+請至：https://greasyfork.org/zh-TW/scripts/481617-tronclass-util
 
-install: https://greasyfork.org/zh-TW/scripts/481617-tronclass-util
+### 簡介
 
-### intro
+這是一個 TronClass 的小工具集合，目前具有以下功能：
 
-一個 tronclass 的小工具合集，目前有以下功能
+-   快速觀看 TronClass 影片
+-   更多功能開發中...
 
-- 快速觀看 tronclass 影片
-- 更新中...
 
-## ~~eclass video autospeed~~
+## LolTronClass 功能
 
-### intro
+### 更好考試檢測
 
-~~自動以 16 倍速觀看影片 已遭棄用~~
+-   優化離開視窗檢測
+-   優化跳出全螢幕檢測
+-   優化浮水印
 
-## loltronclass
+## 已棄用功能
 
-### intro
+### ~~Eclass 影片自動加速~~（已棄用）
 
-bypass 考試檢測功能
-能夠跳脫視窗檢測，屏蔽全螢幕檢測，並且移除浮水印
+~~自動以 16 倍速觀看影片的功能已棄用。~~
+
+

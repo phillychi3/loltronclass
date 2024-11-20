@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         tronclass util
 // @namespace    no
-// @version      0.3.1
+// @version      0.3.2
 // @description  more useful tools for tronclass
 // @author       lol
 // @match        https://eclass.yuntech.edu.tw/course/*
