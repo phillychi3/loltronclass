@@ -222,6 +222,7 @@
     });
   }
 
+  // 影片頁按鈕
   function makevideopanel() {
     let panel = document.createElement("div");
     panel.style = "padding: 20px;margin-top: -40px;";
@@ -294,6 +295,7 @@
     }
   }
 
+  // 首頁按鈕
   function makecoursepanel() {
     let panel = document.createElement("div");
     panel.innerHTML = `
@@ -333,6 +335,7 @@
     });
   }
 
+  // 觀看這周 按鈕
   function makeweekvideopanel() {
     let syllabus = document.getElementsByClassName("syllabus-list");
     Array.from(syllabus).forEach((element) => {
@@ -392,6 +395,7 @@
           `;
           container.appendChild(processbar);
           processbar.style.display = "block";
+          alert("自動觀看即將執行 請勿觸碰頁面，第一次使用請手動同意跳出過多窗口(瀏覽器右上角會有警示，並且重新執行自動觀看)，如有頁面長時間並無自動關閉請重新整理並手動按下觀看按鈕");
           activityIds.forEach((id, index) => {
             setTimeout(() => {
               window.open(
