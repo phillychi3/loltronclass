@@ -1,39 +1,35 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-tw">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ㄔㄐㄐ</title>
-    <link
-      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-  </head>
-  <body>
-    <div class="container mt-5">
-      <div class="alert alert-warning" role="alert">請一定要更新chrome</div>
-      <a
-        href="https://chromewebstore.google.com/detail/%E7%AF%A1%E6%94%B9%E7%8C%B4/dhdgffkkebhmkfjojejmpbldmpobfkfo"
-        class="btn btn-primary"
-        target="_blank"
-        >下載tampermonkey</a
-      >
-      <a
-        href="https://gist.github.com/phillychi3/1f3cbbf5f79fb88380e88d0e765d3bb7/raw/09f6e2e4e2eefb6cf947d88d7b1f8fabad4b6a22/loltronclass.user.js"
-        class="btn btn-primary"
-        >下載腳本</a
-      >
-      <div class="card mt-3">
-        <div
-          class="card-header d-flex justify-content-between align-items-center"
-        >
-          <span>腳本原始碼(僅在無法開啟安裝頁面後使用</span>
-          <button id="copyButton" class="btn btn-sm btn-outline-secondary">
-            Copy
-          </button>
-        </div>
-        <div class="card-body">
-          <pre><code id="codeBlock">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>ㄔㄐㄐ</title>
+		<link
+			href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+			rel="stylesheet"
+		/>
+	</head>
+	<body>
+		<div class="container mt-5">
+			<div class="alert alert-warning" role="alert">請一定要更新chrome</div>
+			<a
+				href="https://chromewebstore.google.com/detail/%E7%AF%A1%E6%94%B9%E7%8C%B4/dhdgffkkebhmkfjojejmpbldmpobfkfo"
+				class="btn btn-primary"
+				target="_blank"
+				>下載tampermonkey</a
+			>
+			<a
+				href="https://gist.github.com/phillychi3/1f3cbbf5f79fb88380e88d0e765d3bb7/raw/09f6e2e4e2eefb6cf947d88d7b1f8fabad4b6a22/loltronclass.user.js"
+				class="btn btn-primary"
+				>下載腳本</a
+			>
+			<div class="card mt-3">
+				<div class="card-header d-flex justify-content-between align-items-center">
+					<span>腳本原始碼(僅在無法開啟安裝頁面後使用</span>
+					<button id="copyButton" class="btn btn-sm btn-outline-secondary">Copy</button>
+				</div>
+				<div class="card-body">
+					<pre><code id="codeBlock">
 // ==UserScript==
 // @name         lol tronclass
 // @namespace    no
@@ -64,27 +60,25 @@ window.addEventListener('load', function() {
     document.getElementById("Symbol(water-mark)").style.background = ""
 }, false);
         </code></pre>
-        </div>
-      </div>
-    </div>
+				</div>
+			</div>
+		</div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script>
-      document
-        .getElementById("copyButton")
-        .addEventListener("click", function () {
-          const codeBlock = document.getElementById("codeBlock").innerText;
-          navigator.clipboard.writeText(codeBlock).then(
-            function () {
-              alert("gogogo");
-            },
-            function (err) {
-              alert("複製失敗: ", err);
-            }
-          );
-        });
-    </script>
-  </body>
+		<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+		<script>
+			document.getElementById('copyButton').addEventListener('click', function () {
+				const codeBlock = document.getElementById('codeBlock').innerText
+				navigator.clipboard.writeText(codeBlock).then(
+					function () {
+						alert('gogogo')
+					},
+					function (err) {
+						alert('複製失敗: ', err)
+					}
+				)
+			})
+		</script>
+	</body>
 </html>

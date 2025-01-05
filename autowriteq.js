@@ -11,13 +11,13 @@
 // @license MIT
 // ==/UserScript==
 
-const rows = Array.from(document.querySelectorAll("tr"));
+const rows = Array.from(document.querySelectorAll('tr'))
 rows.forEach((row) => {
-  const firstRadioInput = row.querySelector('input[type="radio"]');
-  if (firstRadioInput) {
-    firstRadioInput.click();
-  }
-});
+	const firstRadioInput = row.querySelector('input[type="radio"]')
+	if (firstRadioInput) {
+		firstRadioInput.click()
+	}
+})
 
-const submitButton = document.getElementsByClassName("button_green");
-submitButton[0].click();
+const submitButton = document.getElementsByClassName('button_green')
+submitButton[0].click()

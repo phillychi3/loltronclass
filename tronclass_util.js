@@ -12,27 +12,27 @@
 // @license MIT
 // ==/UserScript==
 
-(function () {
-  "use strict";
-  let tglobal = {
-    process: 0,
-    processmax: 0,
-    persent: 0,
-    videoispress: false,
-    courseispress: false,
-    closeonfinish: false,
-  };
+;(function () {
+	'use strict'
+	let tglobal = {
+		process: 0,
+		processmax: 0,
+		persent: 0,
+		videoispress: false,
+		courseispress: false,
+		closeonfinish: false
+	}
 
-  function contains(selector, text) {
-    var elements = document.querySelectorAll(selector);
-    return Array.prototype.filter.call(elements, function (element) {
-      return RegExp(text).test(element.textContent);
-    });
-  }
+	function contains(selector, text) {
+		var elements = document.querySelectorAll(selector)
+		return Array.prototype.filter.call(elements, function (element) {
+			return RegExp(text).test(element.textContent)
+		})
+	}
 
-  function tempAlert(msg, duration) {
-    var el = document.createElement("div");
-    el.innerHTML = `<div class="lol_alert alert-box success radius" data-alert>
+	function tempAlert(msg, duration) {
+		var el = document.createElement('div')
+		el.innerHTML = `<div class="lol_alert alert-box success radius" data-alert>
       ${msg}
     </div>
     <style>
@@ -42,253 +42,241 @@
         left: 20%;
         z-index: 99;
       }
-    </style>`;
-    setTimeout(function () {
-      el.parentNode.removeChild(el);
-    }, duration);
-    document.body.appendChild(el);
-  }
+    </style>`
+		setTimeout(function () {
+			el.parentNode.removeChild(el)
+		}, duration)
+		document.body.appendChild(el)
+	}
 
-  function updateprocessbar() {
-    try {
-      let processbar = document.getElementById("watch-process");
-      let persent = (tglobal.process / tglobal.processmax) * 100;
-      processbar.style = `width: ${persent}%`;
-    } catch (e) {}
-  }
+	function updateprocessbar() {
+		try {
+			let processbar = document.getElementById('watch-process')
+			let persent = (tglobal.process / tglobal.processmax) * 100
+			processbar.style = `width: ${persent}%`
+		} catch (e) {}
+	}
 
-  function finishprocessbar() {
-    try {
-      let processbar = document.getElementById("watch-process-div");
-      processbar.parentNode.removeChild(processbar);
-    } catch (e) {}
-  }
+	function finishprocessbar() {
+		try {
+			let processbar = document.getElementById('watch-process-div')
+			processbar.parentNode.removeChild(processbar)
+		} catch (e) {}
+	}
 
-  function extractVideoId(url) {
-    try {
-      const parsedUrl = new URL(url);
-      const videoId =
-        parsedUrl.searchParams.get("v") || parsedUrl.pathname.split("/").pop();
-      return videoId;
-    } catch (error) {
-      console.error("獲取影片ID出錯:", error);
-      return null;
-    }
-  }
+	function extractVideoId(url) {
+		try {
+			const parsedUrl = new URL(url)
+			const videoId = parsedUrl.searchParams.get('v') || parsedUrl.pathname.split('/').pop()
+			return videoId
+		} catch (error) {
+			console.error('獲取影片ID出錯:', error)
+			return null
+		}
+	}
 
-  async function get_youtube_length() {
-    const iframe = document.querySelector('iframe[src*="youtube.com"]');
-    if (!iframe) {
-      reject("No YouTube iframe");
-      return;
-    }
-    const videoId = extractVideoId(iframe.src);
-    if (!videoId) {
-      reject("無法獲取影片ID");
-      return;
-    }
-    console.log("找到影片ID:", videoId);
-    const apifetch = await fetch(
-      "https://youtube_videotime_worker.phillychi3.workers.dev/api/video?url=" +
-        videoId,
-      {
-        mode: "no-cors",
-      }
-    );
-    if (!apifetch.ok) {
-      console.error("API錯誤:", apifetch.status);
-      reject("API錯誤");
-    } else {
-      const apidata = await apifetch.json();
-      return apidata.length;
-    }
-  }
+	async function get_youtube_length() {
+		const iframe = document.querySelector('iframe[src*="youtube.com"]')
+		if (!iframe) {
+			reject('No YouTube iframe')
+			return
+		}
+		const videoId = extractVideoId(iframe.src)
+		if (!videoId) {
+			reject('無法獲取影片ID')
+			return
+		}
+		console.log('找到影片ID:', videoId)
+		const apifetch = await fetch(
+			'https://youtube_videotime_worker.phillychi3.workers.dev/api/video?url=' + videoId,
+			{
+				mode: 'no-cors'
+			}
+		)
+		if (!apifetch.ok) {
+			console.error('API錯誤:', apifetch.status)
+			reject('API錯誤')
+		} else {
+			const apidata = await apifetch.json()
+			return apidata.length
+		}
+	}
 
-  async function circle_watch(fast = 1000) {
-    const video = document.querySelector("video");
-    //*[@id="player"]
-    let max = 10000;
-    if (document.getElementById("player")) {
-      max = await get_youtube_length();
-    } else {
-      max = video.duration;
-    }
-    if (!video) {
-      setTimeout(() => {
-        circle_watch(fast);
-      }, 1000);
-      console.error("video not found");
-      return;
-    }
+	async function circle_watch(fast = 1000) {
+		const video = document.querySelector('video')
+		//*[@id="player"]
+		let max = 10000
+		if (document.getElementById('player')) {
+			max = await get_youtube_length()
+		} else {
+			max = video.duration
+		}
+		if (!video) {
+			setTimeout(() => {
+				circle_watch(fast)
+			}, 1000)
+			console.error('video not found')
+			return
+		}
 
-    const maxrun = 60;
-    let lasttime = 0;
-    const thisvideoid = document.URL.split("/").splice(-1).toString();
-    tglobal.processmax = max;
-    fetch(`https://eclass.yuntech.edu.tw/api/activities/${thisvideoid}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      cookie: document.cookie,
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        let ct = 0;
-        for (let i = 0; i < max; i = i + maxrun) {
-          ct++;
-          setTimeout(() => {
-            watchthevideo(i, i + maxrun, data);
-            tglobal.process = i + maxrun;
-            updateprocessbar();
-            if (max - i < maxrun) {
-              console.log("last");
-              watchthevideo(i, max, data);
-              tglobal.process = max;
-              updateprocessbar();
-              finishprocessbar();
-              tglobal.videoispress = false;
-              tempAlert("aleardy watch the video", 2000);
-              if (tglobal.closeonfinish) {
-                window.close();
-              }
-            }
-          }, fast * ct);
-          lasttime = i + maxrun;
-        }
-      });
-  }
+		const maxrun = 60
+		let lasttime = 0
+		const thisvideoid = document.URL.split('/').splice(-1).toString()
+		tglobal.processmax = max
+		fetch(`https://eclass.yuntech.edu.tw/api/activities/${thisvideoid}`, {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			cookie: document.cookie
+		})
+			.then((response) => response.json())
+			.then((data) => {
+				let ct = 0
+				for (let i = 0; i < max; i = i + maxrun) {
+					ct++
+					setTimeout(() => {
+						watchthevideo(i, i + maxrun, data)
+						tglobal.process = i + maxrun
+						updateprocessbar()
+						if (max - i < maxrun) {
+							console.log('last')
+							watchthevideo(i, max, data)
+							tglobal.process = max
+							updateprocessbar()
+							finishprocessbar()
+							tglobal.videoispress = false
+							tempAlert('aleardy watch the video', 2000)
+							if (tglobal.closeonfinish) {
+								window.close()
+							}
+						}
+					}, fast * ct)
+					lasttime = i + maxrun
+				}
+			})
+	}
 
-  function watchthevideo(start, end, videodata) {
-    let student = globalData.user;
-    let course = globalData.course;
-    let dep = globalData.dept;
-    fetch(
-      `https://eclass.yuntech.edu.tw/api/course/activities-read/${videodata.id}`,
-      {
-        method: "POST",
-        headers: {
-          Origin: "https://eclass.yuntech.edu.tw",
-          Referer: `https://eclass.yuntech.edu.tw/course/${course.id}/learning-activity/full-screen`,
-          "Content-Type": "application/json;charset=UTF-8",
-        },
-        body: JSON.stringify({
-          start: start,
-          end: end,
-        }),
-        cookie: document.cookie,
-      }
-    ).then((response) => response.json());
-    fetch("https://eclass.yuntech.edu.tw/statistics/api/online-videos", {
-      method: "POST",
-      headers: {
-        Connection: "keep-alive",
-        Origin: "https://eclass.yuntech.edu.tw",
-        Referer: `https://eclass.yuntech.edu.tw/course/${course.id}/learning-activity/full-screen`,
-        "Content-Type": "Typetext/plain;charset=UTF-8",
-      },
-      cookie: document.cookie,
+	function watchthevideo(start, end, videodata) {
+		let student = globalData.user
+		let course = globalData.course
+		let dep = globalData.dept
+		fetch(`https://eclass.yuntech.edu.tw/api/course/activities-read/${videodata.id}`, {
+			method: 'POST',
+			headers: {
+				Origin: 'https://eclass.yuntech.edu.tw',
+				Referer: `https://eclass.yuntech.edu.tw/course/${course.id}/learning-activity/full-screen`,
+				'Content-Type': 'application/json;charset=UTF-8'
+			},
+			body: JSON.stringify({
+				start: start,
+				end: end
+			}),
+			cookie: document.cookie
+		}).then((response) => response.json())
+		fetch('https://eclass.yuntech.edu.tw/statistics/api/online-videos', {
+			method: 'POST',
+			headers: {
+				Connection: 'keep-alive',
+				Origin: 'https://eclass.yuntech.edu.tw',
+				Referer: `https://eclass.yuntech.edu.tw/course/${course.id}/learning-activity/full-screen`,
+				'Content-Type': 'Typetext/plain;charset=UTF-8'
+			},
+			cookie: document.cookie,
 
-      body: JSON.stringify({
-        user_id: student.id,
-        org_id: 1,
-        course_id: course.id,
-        module_id: videodata.moduls_id,
-        syllabus_id: videodata.syllabus_id,
-        activity_id: videodata.id,
-        upload_id: videodata.uploads[0].id,
-        reply_id: null,
-        comment_id: null,
-        forum_type: "",
-        action_type: "play",
-        is_teacher: false,
-        is_student: true,
-        ts: Date.now(),
-        user_agent:
-          "Mozilla/5.0 (X11; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0",
-        meeting_type: "online_video",
-        start_at: start,
-        end_at: end,
-        duration: end - start,
-        master_course_id: 0,
-        org_name: student.orgName,
-        user_no: student.userNo,
-        user_name: student.name,
-        course_code: course.courseCode,
-        course_name: course.name,
-        dep_id: dep.id,
-        dep_name: dep.name,
-        dep_code: dep.code,
-      }),
-    }).then((response) => {
-      if (response.ok) {
-        console.log("success");
-      } else {
-        console.log(response.status);
-      }
-    });
-  }
+			body: JSON.stringify({
+				user_id: student.id,
+				org_id: 1,
+				course_id: course.id,
+				module_id: videodata.moduls_id,
+				syllabus_id: videodata.syllabus_id,
+				activity_id: videodata.id,
+				upload_id: videodata.uploads[0].id,
+				reply_id: null,
+				comment_id: null,
+				forum_type: '',
+				action_type: 'play',
+				is_teacher: false,
+				is_student: true,
+				ts: Date.now(),
+				user_agent: 'Mozilla/5.0 (X11; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0',
+				meeting_type: 'online_video',
+				start_at: start,
+				end_at: end,
+				duration: end - start,
+				master_course_id: 0,
+				org_name: student.orgName,
+				user_no: student.userNo,
+				user_name: student.name,
+				course_code: course.courseCode,
+				course_name: course.name,
+				dep_id: dep.id,
+				dep_name: dep.name,
+				dep_code: dep.code
+			})
+		}).then((response) => {
+			if (response.ok) {
+				console.log('success')
+			} else {
+				console.log(response.status)
+			}
+		})
+	}
 
-  function watchthefile() {
-    const activity_id = document.URL.split("/").splice(-1).toString()
-    fetch(
-      `https://eclass.yuntech.edu.tw/api/activities/${activity_id}?sub_course_id=0`,
-      {
-        headers: {
-          Origin: "https://eclass.yuntech.edu.tw",
-          Referer: `https://eclass.yuntech.edu.tw/course/${course.id}/learning-activity/full-screen`,
-          "Content-Type": "application/json;charset=UTF-8",
-        },
-        cookie: document.cookie,
-      }
-    )
-    .then((response) => response.json())
-    .then((data) => {
-      tglobal.processmax = data.uploads.length;
-      tglobal.process = 0;
-      data.uploads.forEach((element) => {
-        fetch(
-          `https://eclass.yuntech.edu.tw/api/course/activities-read/${data.id}`,
-          {
-            method: "POST",
-            headers: {
-              Origin: "https://eclass.yuntech.edu.tw",
-              Referer: `https://eclass.yuntech.edu.tw/course/${course.id}/learning-activity/full-screen`,
-              "Content-Type": "application/json;charset=UTF-8",
-            },
-            cookie: document.cookie,
-            body: JSON.stringify({
-              upload_id: element.reference_id,
-            }),
-          }
-        )
-        // fetch(
-        //   `https://eclass.yuntech.edu.tw/api/uploads/reference/document/${element.reference_id}/url?preview=true&refer_id=${data.id}}&refer_type=learning_activity`,
-        //   {
-        //     headers: {
-        //       Origin: "https://eclass.yuntech.edu.tw",
-        //       Referer: `https://eclass.yuntech.edu.tw/course/${course.id}/learning-activity/full-screen`,
-        //       "Content-Type": "application/json;charset=UTF-8",
-        //     },
-        //     cookie: document.cookie,
-        //   }
-        // )
-        .then((response) => response.json())
-        tglobal.process = tglobal.process + 1;
-        updateprocessbar();
-        finishprocessbar();
-      })
-    })
-    updateprocessbar();
-    finishprocessbar();
-    tglobal.videoispress = false;
-  }
+	function watchthefile() {
+		const activity_id = document.URL.split('/').splice(-1).toString()
+		fetch(`https://eclass.yuntech.edu.tw/api/activities/${activity_id}?sub_course_id=0`, {
+			headers: {
+				Origin: 'https://eclass.yuntech.edu.tw',
+				Referer: `https://eclass.yuntech.edu.tw/course/${course.id}/learning-activity/full-screen`,
+				'Content-Type': 'application/json;charset=UTF-8'
+			},
+			cookie: document.cookie
+		})
+			.then((response) => response.json())
+			.then((data) => {
+				tglobal.processmax = data.uploads.length
+				tglobal.process = 0
+				data.uploads.forEach((element) => {
+					fetch(`https://eclass.yuntech.edu.tw/api/course/activities-read/${data.id}`, {
+						method: 'POST',
+						headers: {
+							Origin: 'https://eclass.yuntech.edu.tw',
+							Referer: `https://eclass.yuntech.edu.tw/course/${course.id}/learning-activity/full-screen`,
+							'Content-Type': 'application/json;charset=UTF-8'
+						},
+						cookie: document.cookie,
+						body: JSON.stringify({
+							upload_id: element.reference_id
+						})
+					})
+						// fetch(
+						//   `https://eclass.yuntech.edu.tw/api/uploads/reference/document/${element.reference_id}/url?preview=true&refer_id=${data.id}}&refer_type=learning_activity`,
+						//   {
+						//     headers: {
+						//       Origin: "https://eclass.yuntech.edu.tw",
+						//       Referer: `https://eclass.yuntech.edu.tw/course/${course.id}/learning-activity/full-screen`,
+						//       "Content-Type": "application/json;charset=UTF-8",
+						//     },
+						//     cookie: document.cookie,
+						//   }
+						// )
+						.then((response) => response.json())
+					tglobal.process = tglobal.process + 1
+					updateprocessbar()
+					finishprocessbar()
+				})
+			})
+		updateprocessbar()
+		finishprocessbar()
+		tglobal.videoispress = false
+	}
 
-  // 影片頁按鈕
-  function makevideopanel() {
-    let panel = document.createElement("div");
-    panel.style = "padding: 20px;margin-top: -40px;";
-    panel.innerHTML = `
+	// 影片頁按鈕
+	function makevideopanel() {
+		let panel = document.createElement('div')
+		panel.style = 'padding: 20px;margin-top: -40px;'
+		panel.innerHTML = `
     <div class="panel" id="eclassutilpanel">
           <div class="panel-heading">
             <h4>tronclass util</h4>
@@ -325,13 +313,13 @@
             color: white;
           }
         </style>
-    `;
-    document.querySelector("div.fullscreen-right").appendChild(panel);
-    let btn1 = document.getElementById("btn1");
-    btn1.addEventListener("click", function () {
-      if (!tglobal.videoispress) {
-        let processbar = document.createElement("div");
-        processbar.innerHTML = `
+    `
+		document.querySelector('div.fullscreen-right').appendChild(panel)
+		let btn1 = document.getElementById('btn1')
+		btn1.addEventListener('click', function () {
+			if (!tglobal.videoispress) {
+				let processbar = document.createElement('div')
+				processbar.innerHTML = `
         <div class="panel-progress" id="watch-process-div">
             <div class="progress-meter" id="watch-process" style="width: ${tglobal.persent}%"></div>
         </div>
@@ -351,32 +339,32 @@
             border-radius: 30px;
             transition: 0.4s ease-out;
           }
-        `;
-        document.querySelector("div.panel-body").appendChild(processbar);
-        tglobal.videoispress = true;
-        circle_watch();
-      }
-    });
-    let btn2 = document.getElementById("btn2");
-    btn2.addEventListener("click", function () {
-      circle_watch(10);
-    });
-    let hash = window.location.hash.substring(1);
-    let autowatch = false;
-    if (hash.includes("?")) {
-      let hashParams = new URLSearchParams(hash.split("?")[1]);
-      autowatch = hashParams.get("autowatch");
-    }
-    if (autowatch === "true") {
-      tglobal.closeonfinish = true;
-      circle_watch();
-    }
-  }
+        `
+				document.querySelector('div.panel-body').appendChild(processbar)
+				tglobal.videoispress = true
+				circle_watch()
+			}
+		})
+		let btn2 = document.getElementById('btn2')
+		btn2.addEventListener('click', function () {
+			circle_watch(10)
+		})
+		let hash = window.location.hash.substring(1)
+		let autowatch = false
+		if (hash.includes('?')) {
+			let hashParams = new URLSearchParams(hash.split('?')[1])
+			autowatch = hashParams.get('autowatch')
+		}
+		if (autowatch === 'true') {
+			tglobal.closeonfinish = true
+			circle_watch()
+		}
+	}
 
-  function makefilepanel() {
-    let panel = document.createElement("div");
-    panel.style = "padding: 20px;margin-top: -40px;";
-    panel.innerHTML = `
+	function makefilepanel() {
+		let panel = document.createElement('div')
+		panel.style = 'padding: 20px;margin-top: -40px;'
+		panel.innerHTML = `
     <div class="panel" id="eclassutilpanel">
       <div class="panel-heading">
         <h4>tronclass util</h4>
@@ -396,13 +384,13 @@
         padding: 0px;
       }
     </style>
-    `;
-    document.querySelector("div.fullscreen-right").appendChild(panel);
-    let btn1 = document.getElementById("btn1");
-    btn1.addEventListener("click", function () {
-      if (!tglobal.videoispress) {
-        let processbar = document.createElement("div");
-        processbar.innerHTML = `
+    `
+		document.querySelector('div.fullscreen-right').appendChild(panel)
+		let btn1 = document.getElementById('btn1')
+		btn1.addEventListener('click', function () {
+			if (!tglobal.videoispress) {
+				let processbar = document.createElement('div')
+				processbar.innerHTML = `
         <div class="panel-progress" id="watch-process-div">
             <div class="progress-meter" id="watch-process" style="width: ${tglobal.persent}%"></div>
         </div>
@@ -422,28 +410,28 @@
             border-radius: 30px;
             transition: 0.4s ease-out;
           }
-        `;
-        document.querySelector("div.panel-body").appendChild(processbar);
-        tglobal.videoispress = true;
-        watchthefile();
-      }
-    });
-    let hash = window.location.hash.substring(1);
-    let autowatch = false;
-    if (hash.includes("?")) {
-      let hashParams = new URLSearchParams(hash.split("?")[1]);
-      autowatch = hashParams.get("autowatch");
-    }
-    if (autowatch === "true") {
-      tglobal.closeonfinish = true;
-      watchthefile();
-    }
-  }
+        `
+				document.querySelector('div.panel-body').appendChild(processbar)
+				tglobal.videoispress = true
+				watchthefile()
+			}
+		})
+		let hash = window.location.hash.substring(1)
+		let autowatch = false
+		if (hash.includes('?')) {
+			let hashParams = new URLSearchParams(hash.split('?')[1])
+			autowatch = hashParams.get('autowatch')
+		}
+		if (autowatch === 'true') {
+			tglobal.closeonfinish = true
+			watchthefile()
+		}
+	}
 
-  // 首頁按鈕
-  function makecoursepanel() {
-    let panel = document.createElement("div");
-    panel.innerHTML = `
+	// 首頁按鈕
+	function makecoursepanel() {
+		let panel = document.createElement('div')
+		panel.innerHTML = `
     <div class="panel panel-default">
         <div class="panel-heading">
             <h4 class="panel-title">
@@ -465,58 +453,57 @@
         .panel-title {
             padding: 10px;
         }
-    `;
+    `
 
-    let target = document.querySelector(".collapse");
-    target.parentNode.insertBefore(panel, target);
+		let target = document.querySelector('.collapse')
+		target.parentNode.insertBefore(panel, target)
 
-    let btn1 = document.getElementById("btn1");
-    let btn2 = document.getElementById("btn2");
-    btn1.addEventListener("click", function () {
-      console.log("click1");
-    });
-    btn2.addEventListener("click", function () {
-      console.log("click2");
-    });
-  }
+		let btn1 = document.getElementById('btn1')
+		let btn2 = document.getElementById('btn2')
+		btn1.addEventListener('click', function () {
+			console.log('click1')
+		})
+		btn2.addEventListener('click', function () {
+			console.log('click2')
+		})
+	}
 
-  // 觀看這周 按鈕
-  function makeweekvideopanel() {
-    let syllabus = document.getElementsByClassName("syllabus-list");
-    Array.from(syllabus).forEach((element) => {
-      let titleElement = element.querySelector(".title.ng-binding");
-      if (titleElement && titleElement.innerText == "影音教材") {
-        let activities =
-          element.parentElement.getElementsByClassName("learning-activity");
+	// 觀看這周 按鈕
+	function makeweekvideopanel() {
+		let syllabus = document.getElementsByClassName('syllabus-list')
+		Array.from(syllabus).forEach((element) => {
+			let titleElement = element.querySelector('.title.ng-binding')
+			if (titleElement && titleElement.innerText == '影音教材') {
+				let activities = element.parentElement.getElementsByClassName('learning-activity')
 
-        let activityIds = Array.from(activities)
-          .map((activity) => {
-            let match = activity.id.match(/learning-activity-(\d+)/);
-            return match ? match[1] : null;
-          })
-          .filter((id) => id !== null);
+				let activityIds = Array.from(activities)
+					.map((activity) => {
+						let match = activity.id.match(/learning-activity-(\d+)/)
+						return match ? match[1] : null
+					})
+					.filter((id) => id !== null)
 
-        let button = document.createElement("button");
-        button.className = "button-green";
-        button.innerText = "觀看這周";
-        button.style.marginRight = "10px";
+				let button = document.createElement('button')
+				button.className = 'button-green'
+				button.innerText = '觀看這周'
+				button.style.marginRight = '10px'
 
-        button.addEventListener("click", (event) => {
-          event.stopPropagation();
-          if (tglobal.courseispress) {
-            return;
-          }
-          tglobal.courseispress = true;
-          let container = document.createElement("div");
-          container.style.display = "flex";
-          container.style.alignItems = "center";
-          container.style.gap = "10px";
-          button.parentNode.insertBefore(container, button);
-          container.appendChild(button);
-          let processbar = document.createElement("div");
-          processbar.className = "loader";
-          processbar.style.display = "none";
-          processbar.innerHTML = `
+				button.addEventListener('click', (event) => {
+					event.stopPropagation()
+					if (tglobal.courseispress) {
+						return
+					}
+					tglobal.courseispress = true
+					let container = document.createElement('div')
+					container.style.display = 'flex'
+					container.style.alignItems = 'center'
+					container.style.gap = '10px'
+					button.parentNode.insertBefore(container, button)
+					container.appendChild(button)
+					let processbar = document.createElement('div')
+					processbar.className = 'loader'
+					processbar.style.display = 'none'
+					processbar.innerHTML = `
           <style>
             .loader {
               width: 30px;
@@ -537,89 +524,85 @@
             @keyframes l12 {
               100%  {background-position:100% 0,100% 100%,0 100%,0 0,center}
             }
-          `;
-          container.appendChild(processbar);
-          processbar.style.display = "block";
-          alert(
-            "自動觀看即將執行 請勿觸碰頁面，第一次使用請手動同意跳出過多窗口(瀏覽器右上角會有警示，並且重新執行自動觀看)，如有頁面長時間並無自動關閉請重新整理並手動按下觀看按鈕"
-          );
-          activityIds.forEach((id, index) => {
-            setTimeout(() => {
-              window.open(
-                `https://eclass.yuntech.edu.tw/course/${globalData.course.id}/learning-activity/full-screen#/${id}?autowatch=true`
-              );
-              console.log(id);
-            }, index * 6000);
-          });
-          setTimeout(() => {
-            tglobal.courseispress = false;
-            processbar.style.display = "none";
-          }, activityIds.length * 6000);
-        });
+          `
+					container.appendChild(processbar)
+					processbar.style.display = 'block'
+					alert(
+						'自動觀看即將執行 請勿觸碰頁面，第一次使用請手動同意跳出過多窗口(瀏覽器右上角會有警示，並且重新執行自動觀看)，如有頁面長時間並無自動關閉請重新整理並手動按下觀看按鈕'
+					)
+					activityIds.forEach((id, index) => {
+						setTimeout(() => {
+							window.open(
+								`https://eclass.yuntech.edu.tw/course/${globalData.course.id}/learning-activity/full-screen#/${id}?autowatch=true`
+							)
+							console.log(id)
+						}, index * 6000)
+					})
+					setTimeout(() => {
+						tglobal.courseispress = false
+						processbar.style.display = 'none'
+					}, activityIds.length * 6000)
+				})
 
-        titleElement.parentNode.appendChild(button);
-      }
-    });
-  }
+				titleElement.parentNode.appendChild(button)
+			}
+		})
+	}
 
-  var observer = new MutationObserver(resetTimer);
-  var timer = setTimeout(action, 1000, observer);
-  observer.observe(document, { childList: true, subtree: true });
+	var observer = new MutationObserver(resetTimer)
+	var timer = setTimeout(action, 1000, observer)
+	observer.observe(document, { childList: true, subtree: true })
 
-  function resetTimer(changes, observer) {
-    clearTimeout(timer);
-    timer = setTimeout(action, 1000, observer);
-  }
+	function resetTimer(changes, observer) {
+		clearTimeout(timer)
+		timer = setTimeout(action, 1000, observer)
+	}
 
-  function waitForElement(selector, text, maxAttempts = 5) {
-    return new Promise((resolve) => {
-      let attempts = 0;
+	function waitForElement(selector, text, maxAttempts = 5) {
+		return new Promise((resolve) => {
+			let attempts = 0
 
-      const checkElement = () => {
-        const elements = contains(selector, text);
-        if (elements.length > 0) {
-          resolve(true);
-        } else if (attempts < maxAttempts) {
-          attempts++;
-          setTimeout(checkElement, 100);
-        } else {
-          resolve(false);
-        }
-      };
+			const checkElement = () => {
+				const elements = contains(selector, text)
+				if (elements.length > 0) {
+					resolve(true)
+				} else if (attempts < maxAttempts) {
+					attempts++
+					setTimeout(checkElement, 100)
+				} else {
+					resolve(false)
+				}
+			}
 
-      checkElement();
-    });
-  }
+			checkElement()
+		})
+	}
 
-  async function action(observer) {
-    observer.disconnect();
-    if (
-      document.URL.match(
-        /https?:\/\/eclass.yuntech.edu.tw\/course\/[0-9]{1,6}\/content#\//
-      )
-    ) {
-      makecoursepanel();
-      makeweekvideopanel();
-    } else if (
-      document.URL.match(
-        /https?:\/\/eclass.yuntech.edu.tw\/course\/[0-9]{1,6}\/learning-activity\/full-screen/
-      )
-    ) {
-      const hasWatchRequirement = await waitForElement("span", "需累積觀看");
-      if (hasWatchRequirement) {
-        makevideopanel();
-      }
+	async function action(observer) {
+		observer.disconnect()
+		if (document.URL.match(/https?:\/\/eclass.yuntech.edu.tw\/course\/[0-9]{1,6}\/content#\//)) {
+			makecoursepanel()
+			makeweekvideopanel()
+		} else if (
+			document.URL.match(
+				/https?:\/\/eclass.yuntech.edu.tw\/course\/[0-9]{1,6}\/learning-activity\/full-screen/
+			)
+		) {
+			const hasWatchRequirement = await waitForElement('span', '需累積觀看')
+			if (hasWatchRequirement) {
+				makevideopanel()
+			}
 
-      const hasDownloadOption = await waitForElement("span", "觀看或下載");
-      if (hasDownloadOption) {
-        makefilepanel();
-      }
-    }
-  }
+			const hasDownloadOption = await waitForElement('span', '觀看或下載')
+			if (hasDownloadOption) {
+				makefilepanel()
+			}
+		}
+	}
 
-  console.log(
-    "%c eclass Util %c https://github.com/phillychi3/loltronclass ",
-    "color: white; background: #e9546b; padding:5px 0;",
-    "padding:4px;border:1px solid #e9546b;"
-  );
-})();
+	console.log(
+		'%c eclass Util %c https://github.com/phillychi3/loltronclass ',
+		'color: white; background: #e9546b; padding:5px 0;',
+		'padding:4px;border:1px solid #e9546b;'
+	)
+})()
