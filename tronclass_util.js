@@ -1,14 +1,12 @@
 // ==UserScript==
 // @name         yuntech tronclass util
 // @namespace    no
-// @version      0.3.3
+// @version      0.3.4
 // @description  一鍵觀看影片，一鍵完成每周影音教材觀看，一鍵觀看投影片
 // @author       someone
 // @match        https://eclass.yuntech.edu.tw/course/*
 // @icon         https://cdn.discordapp.com/avatars/755351137577599016/5ccfb5d525fb3d304c7d61c8d51c6777.png?size=1024
 // @grant        none
-// @updateURL    https://raw.githubusercontent.com/phillychi3/loltronclass/main/tronclass_util.js
-// @downloadURL  https://raw.githubusercontent.com/phillychi3/loltronclass/main/tronclass_util.js
 // @license MIT
 // ==/UserScript==
 
@@ -558,6 +556,35 @@
 		timer = setTimeout(action, 1000, observer)
 	}
 
+	function modifyLearningActivities() {
+		const learningActivities = document.querySelectorAll('.learning-activity')
+
+		learningActivities.forEach((activity) => {
+			const activityId = activity.id.replace('learning-activity-', '')
+
+			const clickableArea = activity.querySelector('.clickable-area')
+
+			if (clickableArea) {
+				const newClickableArea = clickableArea.cloneNode(true)
+				clickableArea.parentNode.replaceChild(newClickableArea, clickableArea)
+
+				const courseId = window.location.pathname.split('/')[2]
+
+				newClickableArea.addEventListener('click', function (e) {
+					e.preventDefault()
+					e.stopPropagation()
+
+					window.open(
+						`https://eclass.yuntech.edu.tw/course/${courseId}/learning-activity#/${activityId}`,
+						'_blank'
+					)
+				})
+
+				newClickableArea.style.cursor = 'pointer'
+			}
+		})
+	}
+
 	function waitForElement(selector, text, maxAttempts = 5) {
 		return new Promise((resolve) => {
 			let attempts = 0
@@ -583,6 +610,7 @@
 		if (document.URL.match(/https?:\/\/eclass.yuntech.edu.tw\/course\/[0-9]{1,6}\/content#\//)) {
 			makecoursepanel()
 			makeweekvideopanel()
+			modifyLearningActivities()
 		} else if (
 			document.URL.match(
 				/https?:\/\/eclass.yuntech.edu.tw\/course\/[0-9]{1,6}\/learning-activity\/full-screen/
