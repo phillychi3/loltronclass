@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         yuntech tronclass util
 // @namespace    no
-// @version      0.3.4
+// @version      0.3.5
 // @description  一鍵觀看影片，一鍵完成每周影音教材觀看，一鍵觀看投影片
 // @author       someone
 // @match        https://eclass.yuntech.edu.tw/course/*
@@ -19,6 +19,64 @@
 		videoispress: false,
 		courseispress: false,
 		closeonfinish: false
+	}
+
+	function disableVideoJSFocusDetection() {
+		const blockedEvents = [
+			'visibilitychange',
+			'webkitvisibilitychange',
+			'mozvisibilitychange',
+			'msvisibilitychange',
+			'fullscreenchange',
+			'webkitfullscreenchange',
+			'mozfullscreenchange',
+			'MSFullscreenChange',
+			'focus',
+			'blur',
+			'pagehide'
+		]
+
+		blockedEvents.forEach((eventType) => {
+			const originalAddEvent = EventTarget.prototype.addEventListener
+			EventTarget.prototype.addEventListener = function (type, listener, options) {
+				if (type === eventType) {
+					console.log(`攔截: ${type}`)
+					return
+				}
+				return originalAddEvent.call(this, type, listener, options)
+			}
+
+			window.addEventListener(
+				eventType,
+				function (e) {
+					e.stopImmediatePropagation()
+					e.preventDefault()
+					console.log(`已阻止: ${eventType}`)
+				},
+				true
+			)
+		})
+
+		Object.defineProperty(document, 'hidden', { get: () => false, configurable: true })
+		Object.defineProperty(document, 'visibilityState', { get: () => 'visible', configurable: true })
+		Object.defineProperty(document, 'webkitHidden', { get: () => false, configurable: true })
+		Object.defineProperty(document, 'webkitVisibilityState', {
+			get: () => 'visible',
+			configurable: true
+		})
+
+		document.hasFocus = () => true
+		Object.defineProperty(document, 'hasFocus', { value: () => true, configurable: true })
+
+		console.log('replaced document properties to prevent focus detection')
+	}
+
+	if (
+		document.URL.match(
+			/https?:\/\/eclass.yuntech.edu.tw\/course\/[0-9]{1,6}\/learning-activity(#)?\/(full-screen)?/
+		)
+	) {
+		disableVideoJSFocusDetection()
 	}
 
 	function contains(selector, text) {
@@ -109,6 +167,8 @@
 		} else {
 			max = video.duration
 		}
+
+		max = Math.floor(max)
 		if (!video) {
 			setTimeout(() => {
 				circle_watch(fast)
@@ -156,6 +216,9 @@
 	}
 
 	function watchthevideo(start, end, videodata) {
+		start = Math.floor(start)
+		end = Math.floor(end)
+		const duration = end - start
 		let student = globalData.user
 		let course = globalData.course
 		let dep = globalData.dept
@@ -178,7 +241,7 @@
 				Connection: 'keep-alive',
 				Origin: 'https://eclass.yuntech.edu.tw',
 				Referer: `https://eclass.yuntech.edu.tw/course/${course.id}/learning-activity/full-screen`,
-				'Content-Type': 'Typetext/plain;charset=UTF-8'
+				'Content-Type': 'text/plain;charset=UTF-8'
 			},
 			cookie: document.cookie,
 
@@ -201,7 +264,7 @@
 				meeting_type: 'online_video',
 				start_at: start,
 				end_at: end,
-				duration: end - start,
+				duration: duration,
 				master_course_id: 0,
 				org_name: student.orgName,
 				user_no: student.userNo,
@@ -271,82 +334,101 @@
 	}
 
 	// 影片頁按鈕
-	function makevideopanel() {
+	async function makevideopanel() {
+		const target = await waitForSelector('.video-player-section')
+
+		if (!target) {
+			console.error('makevideopanel: .video-player-section not found')
+			return
+		}
+
 		let panel = document.createElement('div')
-		panel.style = 'padding: 20px;margin-top: -40px;'
+		panel.style = 'padding: 20px; margin-top: 20px;'
 		panel.innerHTML = `
-    <div class="panel" id="eclassutilpanel">
-          <div class="panel-heading">
-            <h4>tronclass util</h4>
-          </div>
-          <div class="panel-body">
-            <div class="panel-buttons" id="buttons">
-              <button class="btn btn-default glow-button" id="btn1">Watch Video</button>
-              <button class="btn btn-default glow-button" id="btn2">Watch Video Fast(useless)</button>
+        <div class="panel" id="eclassutilpanel">
+            <div class="panel-heading">
+                <h4>tronclass util</h4>
             </div>
-          </div>
+            <div class="panel-body">
+                <div class="panel-buttons" id="buttons">
+                    <button class="btn btn-default glow-button" id="btn1">Watch Video</button>
+                    <button class="btn btn-default glow-button" id="btn2">Watch Video Fast</button>
+                </div>
+            </div>
         </div>
         <style>
-          .panel {
-            margin-bottom: 23px;
-            background: rgba(255, 255, 255, 0.9);
-          }
-          .panel-heading {
-            padding: 0px;
-          }
-
-          .glow-button {
-            position: relative;
-            background: #428bca;
-            color: white;
-            border: none;
-            box-shadow: 0 0 10px #428bca;
-            animation: permanentGlow 2s ease-in-out infinite;
-          }
-
-          .glow-button:hover {
-            transform: translateY(-2px);
-            animation: permanentGlowHover 2s ease-in-out infinite;
-            background: #3071a9;
-            color: white;
-          }
+            .panel {
+                margin-bottom: 23px;
+                border-radius: 5px;
+            }
+            .panel-heading {
+                padding: 10px;
+                border-radius: 5px 5px 0 0;
+            }
+            .panel-body {
+                padding: 15px;
+            }
+            .glow-button {
+                position: relative;
+                background: #428bca;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                margin: 5px;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+            .glow-button:hover {
+                transform: translateY(-2px);
+                background: #3071a9;
+            }
         </style>
-    `
-		document.querySelector('div.fullscreen-right').appendChild(panel)
+        `
+
+		// 插入在影片區域之後
+		target.parentNode.insertBefore(panel, target.nextSibling)
+
+		// 按鈕事件監聽器
 		let btn1 = document.getElementById('btn1')
 		btn1.addEventListener('click', function () {
 			if (!tglobal.videoispress) {
 				let processbar = document.createElement('div')
 				processbar.innerHTML = `
-        <div class="panel-progress" id="watch-process-div">
-            <div class="progress-meter" id="watch-process" style="width: ${tglobal.persent}%"></div>
-        </div>
-        <style>
-          .panel-progress {
-            margin-top: 20px;
-            padding: 6px;
-            border-radius: 30px;
-            background: rgba(0, 0, 0, 0.25);
-            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25),
-              0 1px rgba(255, 255, 255, 0.08);
-          }
-          .progress-meter {
-            animation: progressAnimation 6s;
-            background-color: #ef416f;
-            height: 10px;
-            border-radius: 30px;
-            transition: 0.4s ease-out;
-          }
-        `
-				document.querySelector('div.panel-body').appendChild(processbar)
+                <div class="panel-progress" id="watch-process-div">
+                    <div class="progress-meter" id="watch-process" style="width: ${tglobal.persent}%"></div>
+                </div>
+                <style>
+                    .panel-progress {
+                        margin-top: 20px;
+                        padding: 6px;
+                        border-radius: 30px;
+                        background: rgba(0, 0, 0, 0.25);
+                        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25),
+                            0 1px rgba(255, 255, 255, 0.08);
+                    }
+                    .progress-meter {
+                        background-color: #ef416f;
+                        height: 10px;
+                        border-radius: 30px;
+                        transition: 0.4s ease-out;
+                    }
+                </style>
+                `
+				document.querySelector('#eclassutilpanel .panel-body').appendChild(processbar)
 				tglobal.videoispress = true
 				circle_watch()
 			}
 		})
+
 		let btn2 = document.getElementById('btn2')
 		btn2.addEventListener('click', function () {
-			circle_watch(10)
+			if (!tglobal.videoispress) {
+				tglobal.videoispress = true
+				circle_watch(10)
+			}
 		})
+
+		// 自動觀看邏輯
 		let hash = window.location.hash.substring(1)
 		let autowatch = false
 		if (hash.includes('?')) {
@@ -359,7 +441,12 @@
 		}
 	}
 
-	function makefilepanel() {
+	async function makefilepanel() {
+		const target = await waitForSelector('div.fullscreen-right')
+		if (!target) {
+			console.error('makefilepanel: div.fullscreen-right not found')
+			return
+		}
 		let panel = document.createElement('div')
 		panel.style = 'padding: 20px;margin-top: -40px;'
 		panel.innerHTML = `
@@ -383,7 +470,7 @@
       }
     </style>
     `
-		document.querySelector('div.fullscreen-right').appendChild(panel)
+		target.appendChild(panel)
 		let btn1 = document.getElementById('btn1')
 		btn1.addEventListener('click', function () {
 			if (!tglobal.videoispress) {
@@ -605,6 +692,26 @@
 		})
 	}
 
+	function waitForSelector(selector, maxAttempts = 20) {
+		return new Promise((resolve) => {
+			let attempts = 0
+
+			const checkElement = () => {
+				const element = document.querySelector(selector)
+				if (element) {
+					resolve(element)
+				} else if (attempts < maxAttempts) {
+					attempts++
+					setTimeout(checkElement, 200)
+				} else {
+					resolve(null)
+				}
+			}
+
+			checkElement()
+		})
+	}
+
 	async function action(observer) {
 		observer.disconnect()
 		if (document.URL.match(/https?:\/\/eclass.yuntech.edu.tw\/course\/[0-9]{1,6}\/content#\//)) {
@@ -613,17 +720,17 @@
 			modifyLearningActivities()
 		} else if (
 			document.URL.match(
-				/https?:\/\/eclass.yuntech.edu.tw\/course\/[0-9]{1,6}\/learning-activity\/full-screen/
+				/https?:\/\/eclass.yuntech.edu.tw\/course\/[0-9]{1,6}\/learning-activity(#)?\/(full-screen)?/
 			)
 		) {
 			const hasWatchRequirement = await waitForElement('span', '需累積觀看')
 			if (hasWatchRequirement) {
-				makevideopanel()
+				await makevideopanel()
 			}
 
 			const hasDownloadOption = await waitForElement('span', '觀看或下載')
 			if (hasDownloadOption) {
-				makefilepanel()
+				await makefilepanel()
 			}
 		}
 	}
