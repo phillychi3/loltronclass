@@ -24,7 +24,6 @@ css.innerText = `* {
         -ms-user-select: text !important;
         user-select: text !important;
 }`
-
 ;[].forEach.call(
 	[
 		'visibilitychange',
@@ -55,7 +54,6 @@ css.innerText = `* {
 		)
 	}
 )
-
 ;[].forEach.call(
 	[
 		'contextmenu',
@@ -81,7 +79,6 @@ css.innerText = `* {
 		)
 	}
 )
-
 ;[].forEach.call(['cut', 'paste', 'select', 'selectstart'], function (event) {
 	document.addEventListener(
 		event,

@@ -1,8 +1,18 @@
 {
+	"name": "tronclass util",
+	"type": "module",
 	"scripts": {
+		"build": "vite build",
+		"dev": "vite build --mode dev",
 		"format": "prettier --write ."
 	},
 	"devDependencies": {
-		"prettier": "3.4.2"
+		"prettier": "3.4.2",
+		"vite-plugin-css-injected-by-js": "^5.0.1"
+	},
+	"dependencies": {
+		"@sveltejs/vite-plugin-svelte": "^7.1.2",
+		"svelte": "^5.56.4",
+		"vite": "^8.1.3"
 	}
 }
