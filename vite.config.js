@@ -10,6 +10,7 @@ export default ({ mode }) => {
 	return defineConfig({
 		plugins: [svelte(), cssInjectedByJsPlugin()],
 		build: {
+			outDir: 'build',
 			minify: false,
 			lib: {
 				entry: 'src/main.js',
